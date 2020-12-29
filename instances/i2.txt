@@ -4,6 +4,7 @@ NUMBER     CAPACITY
 
 CUSTOMER
 CUST NO.  XCOORD.    YCOORD.    DEMAND   READY TIME  DUE DATE   SERVICE TIME
+
     0      70         70          0          0        634          0
     1      10         86         14        405        446         10
     2      16         62         15        406        417         10
