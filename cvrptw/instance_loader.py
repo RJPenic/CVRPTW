@@ -29,29 +29,34 @@ class Instance:
     def __getitem__(self, key):
         return self.customer_list[key]
 
-    @staticmethod
-    def load_from_file(filepath):
-        i = 0
-        customer_list = []
-        num_vehicles = 0
-        capacity = 0
+    def __str__(self):
+        result = f'Vehicle Number: {self.num_vehicles}; Capacity: {self.capacity};'
+        for customer in self.customer_list:
+            result += f'\n{customer}'
+        return result
 
-        with open(filepath) as f:
-            line = f.readline()
-            while line:
-                if not line.strip(): # skip empty lines
-                    line = f.readline()
-                    continue
+def load_from_file(filepath):
+    i = 0
+    customer_list = []
+    num_vehicles = 0
+    capacity = 0
 
-                if i == 2: # number of vehicles and capacity
-                    params = [int(p) for p in line.split()]
-                    num_vehicles = params[0]
-                    capacity = params[1]
-                elif i >= 5: # customer info
-                    params = [int(p) for p in line.split()]
-                    customer_list.append(Customer(*params))
-
-                i += 1
+    with open(filepath) as f:
+        line = f.readline()
+        while line:
+            if not line.strip(): # skip empty lines
                 line = f.readline()
+                continue
 
-        return Instance(num_vehicles, capacity, customer_list)
+            if i == 2: # number of vehicles and capacity
+                params = [int(p) for p in line.split()]
+                num_vehicles = params[0]
+                capacity = params[1]
+            elif i >= 5: # customer info
+                params = [int(p) for p in line.split()]
+                customer_list.append(Customer(*params))
+
+            i += 1
+            line = f.readline()
+
+    return Instance(num_vehicles, capacity, customer_list)
