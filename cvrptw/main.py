@@ -8,4 +8,5 @@ cwd = os.getcwd()
 filepath = cwd + '/instances/' + instance
 
 instance = load_from_file(filepath)
-print(instance)
+print(instance.find_initial_solution())
+# print(instance)
