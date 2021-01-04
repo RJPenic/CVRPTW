@@ -9,5 +9,6 @@ if __name__ == '__main__':
     filepath = cwd + '/instances/' + instance
 
     instance = load_from_file(filepath)
-    print(instance.find_initial_solution())
+    instance.find_initial_solution()
+    print(instance.get_output())
     # print(instance)

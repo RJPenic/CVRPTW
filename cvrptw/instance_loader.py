@@ -1,5 +1,6 @@
 from util import *
 from math import ceil
+import random
 
 
 class Customer:
@@ -11,7 +12,11 @@ class Customer:
         self.ready_time = ready_time
         self.due_date = due_date
         self.service_time = service_time
-        self.served = False
+        self.is_served = False
+
+    def served(self, vehicle_num):
+        self.is_served = True
+        self.vehicle_num = vehicle_num
 
     def __str__(self):
         return f'Customer NO. : {self.cust_no}; X : {self.x}; Y : {self.y}; Demand : {self.demand}; Ready Time : {self.ready_time}; Due Date : {self.due_date}; Service Time : {self.service_time}'
@@ -24,11 +29,11 @@ class Vehicle:
         self.min_capacity = min_capacity
         self.capacity = max_capacity
         self.last_service_time = 0
-        self.service_route = [(0, 0)]
+        self.service_route = [(depo, 0)]
         self.total_distance = 0
         self.depo = depo
 
-    def serve_customer(self, customer):
+    def serve_customer(self, customer, vehicle_num):
         if not (customer.ready_time <= (ceil(distance(customer, self)) + self.last_service_time) <= customer.due_date) or self.capacity <= customer.demand:
             return False
         if self.depo.due_date < ceil(distance(customer, self)) + self.last_service_time + customer.service_time + distance(customer, self.depo):
@@ -38,19 +43,19 @@ class Vehicle:
         self.y = customer.y
         self.capacity -= customer.demand
         self.last_service_time += ceil(dist)
-        self.service_route += [(customer.cust_no, self.last_service_time)]
+        self.service_route += [(customer, self.last_service_time)]
         self.last_service_time += customer.service_time
-        customer.served = True
+        customer.served(vehicle_num)
         self.total_distance += dist
         if self.capacity < self.min_capacity:
             self.return_home()
         return True
 
-    def serve_customer_force(self, customer):
+    def serve_customer_force(self, customer, vehicle_num):
         if customer.ready_time > ceil(distance(customer, self)) + self.last_service_time:
             last_service_time = self.last_service_time
             self.last_service_time += customer.ready_time - ceil(distance(customer, self)) + self.last_service_time
-            if self.serve_customer(customer):
+            if self.serve_customer(customer, vehicle_num):
                 return True
             else:
                 self.last_service_time = last_service_time
@@ -60,7 +65,27 @@ class Vehicle:
         if self.x != self.depo.x or self.y != self.depo.y:
             self.capacity = self.max_capacity
             self.last_service_time += ceil(distance(self, self.depo))
-            self.service_route += [(0, self.last_service_time)]
+            self.service_route += [(self.depo, self.last_service_time)]
+            self.x = self.depo.x
+            self.y = self.depo.y
+
+    # TODO remove customer from list of served ones and update the rest
+    def remove_customer(self, customer):
+        # --->
+        self.reset_vehicle_used()
+
+    # TODO try out every combination for this vehicle and save it if its valid
+    def try_to_serve_customer(self, customer, vehicle_num):
+        # --->
+        return
+
+    def reset_vehicle_used(self):
+        if self.service_route[0] == self.service_route[1]:
+            self.service_route = self.service_route[:1]
+            self.last_service_time = 0
+            self.capacity = self.max_capacity
+            self.total_distance
+
 
 class Instance:
     def __init__(self, num_vehicles, capacity, customer_list):
@@ -69,6 +94,7 @@ class Instance:
         ), f'Number of vehicles and their capacity must be positive! {num_vehicles}, {capacity}'
         self.num_vehicles = num_vehicles
         self.capacity = capacity
+        self.vehicles_used = 0
 
         customer_list.sort(key=lambda c: c.ready_time)
         depo = customer_list[0]
@@ -92,13 +118,32 @@ class Instance:
 
     def find_initial_solution(self):
         for customer in self.customer_list[1:]:
-            for vehicle in self.vehicles:
-                if vehicle.serve_customer(customer):
+            for i, vehicle in enumerate(self.vehicles):
+                if vehicle.serve_customer(customer, i):
                     break
-            if not customer.served:
-                for vehicle in self.vehicles:
-                    if vehicle.serve_customer_force(customer):
+            if not customer.is_served:
+                for i, vehicle in enumerate(self.vehicles):
+                    if vehicle.serve_customer_force(customer, i):
                         break
+        for vehicle in self.vehicles:
+            if vehicle.last_service_time == 0:
+                continue
+            vehicle.return_home()
+            self.vehicles_used += 1
+
+    def generate_random_neighbour(self):
+        rand_cust = self.customer_list[random.random(0, len(self.customer_list))]
+        current_serving_vehicle = self.vehicles[rand_cust.vehicle_num]
+        current_serving_vehicle.remove_customer(rand_cust)
+
+
+        while not rand_cust.is_served:
+            vehicle_num = random.random(0, len(self.vehicles))
+            vehicle = self.vehicles[vehicle_num]
+            if vehicle.last_service_time != 0:
+                vehicle.try_to_serve_customer(rand_cust, i)
+
+    def get_output(self):
         dist = 0
         result = ""
         i = 1
@@ -109,7 +154,7 @@ class Instance:
             dist += vehicle.total_distance
             result += f'{i}: '
             for node in vehicle.service_route:
-                result += f'{node[0]}({node[1]})->'
+                result += f'{node[0].cust_no}({node[1]})->'
             result = result[:-2] + '\n'
             i += 1
         return f'{i-1}\n{result}{dist}'
