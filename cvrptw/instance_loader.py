@@ -21,6 +21,9 @@ class Customer:
     def __str__(self):
         return f'Customer NO. : {self.cust_no}; X : {self.x}; Y : {self.y}; Demand : {self.demand}; Ready Time : {self.ready_time}; Due Date : {self.due_date}; Service Time : {self.service_time}'
 
+    def __eq__(self, other):
+        return self.cust_no == other.cust_no
+
 class Vehicle:
     def __init__(self, depo, max_capacity, min_capacity=0):
         self.x = depo.x
@@ -69,15 +72,27 @@ class Vehicle:
             self.x = self.depo.x
             self.y = self.depo.y
 
-    # TODO remove customer from list of served ones and update the rest
     def remove_customer(self, customer):
-        # --->
+        customer_idx = [route_node[0] for route_node in self.service_route].index(customer)
+        del self.service_route[customer_idx]
+
+        for i, (curr_customer, curr_time) in enumerate(self.service_route[customer_idx :]):
+            prev_customer, prev_time = self.service_route[customer_idx + i - 1]
+            new_time = prev_time + prev_customer.service_time + ceil(distance(prev_customer, curr_customer))
+            new_time = max(new_time, curr_customer.ready_time)
+            self.service_route[customer_idx + i] = (curr_customer, new_time)
+        
+        next_customer = self.service_route[customer_idx][0]
+        prev_customer = self.service_route[customer_idx - 1][0]
+        self.total_distance -= (distance(customer, next_customer) + distance(customer, prev_customer))
+        self.total_distance += distance(prev_customer, next_customer)
+
         self.reset_vehicle_used()
 
     # TODO try out every combination for this vehicle and save it if its valid
     def try_to_serve_customer(self, customer, vehicle_num):
-        # --->
-        return
+        #TODO
+        return False
 
     def reset_vehicle_used(self):
         if self.service_route[0] == self.service_route[1]:
@@ -135,7 +150,6 @@ class Instance:
         rand_cust = self.customer_list[random.random(0, len(self.customer_list))]
         current_serving_vehicle = self.vehicles[rand_cust.vehicle_num]
         current_serving_vehicle.remove_customer(rand_cust)
-
 
         while not rand_cust.is_served:
             vehicle_num = random.random(0, len(self.vehicles))
