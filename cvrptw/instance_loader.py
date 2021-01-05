@@ -14,6 +14,9 @@ class Customer:
         self.service_time = service_time
         self.is_served = False
 
+    def copy(self):
+        return Customer(self.cust_no, self.x, self.y, self.demand, self.ready_time, self.due_date, self.service_time)
+
     def served(self, vehicle_num):
         self.is_served = True
         self.vehicle_num = vehicle_num
@@ -89,17 +92,45 @@ class Vehicle:
 
         self.reset_vehicle_used()
 
-    # TODO try out every combination for this vehicle and save it if its valid
-    def try_to_serve_customer(self, customer, vehicle_num):
-        #TODO
+    def try_to_serve_customer(self, new_customer, vehicle_num):
+        for i in range(len(self.service_route)):
+            vehicle = Vehicle(self.depo, self.max_capacity, self.min_capacity)
+            index = random.randrange(1, len(self.service_route) - 1)
+            should_use_route = True
+            for i, (customer, curr_time) in enumerate(self.service_route[1:]):
+                if i == index:
+                    if not vehicle.serve_customer(new_customer.copy(), vehicle_num):
+                        should_use_route = False
+                        break
+                if not vehicle.serve_customer(customer.copy(), vehicle_num):
+                    should_use_route = False
+                    break
+            vehicle.hard_reset_vehicle()
+            if not should_use_route:
+                continue
+
+            for i, (customer, curr_time) in enumerate(self.service_route[1:]):
+                if i == index:
+                    if not vehicle.serve_customer(new_customer, vehicle_num):
+                        break
+                if not vehicle.serve_customer(customer, vehicle_num):
+                    break
+            self.service_route = vehicle.service_route[:]
+            self.last_service_time = vehicle.last_service_time
+            self.capacity = vehicle.capacity
+            self.total_distance = vehicle.total_distance
+            return True
         return False
+
+    def hard_reset_vehicle(self):
+        self.service_route = [(self.depo, 0)]
+        self.last_service_time = 0
+        self.capacity = self.max_capacity
+        self.total_distance
 
     def reset_vehicle_used(self):
         if self.service_route[0] == self.service_route[1]:
-            self.service_route = self.service_route[:1]
-            self.last_service_time = 0
-            self.capacity = self.max_capacity
-            self.total_distance
+            self.hard_reset_vehicle()
 
 
 class Instance:
@@ -109,9 +140,8 @@ class Instance:
         ), f'Number of vehicles and their capacity must be positive! {num_vehicles}, {capacity}'
         self.num_vehicles = num_vehicles
         self.capacity = capacity
-        self.vehicles_used = 0
 
-        customer_list.sort(key=lambda c: c.ready_time)
+        customer_list.sort(key=lambda c: c.cust_no)
         depo = customer_list[0]
         self.vehicles = [Vehicle(depo, capacity) for _ in range(num_vehicles)]
         assert (
@@ -144,7 +174,6 @@ class Instance:
             if vehicle.last_service_time == 0:
                 continue
             vehicle.return_home()
-            self.vehicles_used += 1
 
     def generate_random_neighbour(self):
         rand_cust = self.customer_list[random.random(0, len(self.customer_list))]
