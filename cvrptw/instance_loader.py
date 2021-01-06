@@ -202,6 +202,17 @@ class Instance:
             i += 1
         return f'{i-1}\n{result}{dist}'
 
+    def get_total_distance_and_vehichels(self):
+        dist = 0
+        vehicles_used = 0
+        for vehicle in self.vehicles:
+            if vehicle.last_service_time == 0:
+                continue
+            vehicle.return_home()
+            vehicles_used += 1
+            dist += vehicle.total_distance
+        return (dist, vehicles)
+
 def load_from_file(filepath):
     i = 0
     customer_list = []
