@@ -202,7 +202,7 @@ class Instance:
             i += 1
         return f'{i-1}\n{result}{dist}'
 
-    def get_total_distance_and_vehichels(self):
+    def get_total_distance_and_vehicles(self):
         dist = 0
         vehicles_used = 0
         for vehicle in self.vehicles:
@@ -211,7 +211,7 @@ class Instance:
             vehicle.return_home()
             vehicles_used += 1
             dist += vehicle.total_distance
-        return (dist, vehicles)
+        return dist, vehicles
 
 def load_from_file(filepath):
     i = 0
