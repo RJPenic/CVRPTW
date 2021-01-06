@@ -13,7 +13,7 @@ class Customer:
         self.due_date = due_date
         self.service_time = service_time
         self.is_served = False
-        self.vehicle_num = -1
+        self.vehicle_num = None
 
     def copy(self):
         return Customer(self.cust_no, self.x, self.y, self.demand, self.ready_time, self.due_date, self.service_time)
