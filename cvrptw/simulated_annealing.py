@@ -1,6 +1,7 @@
 import instance_loader
 import random
 from copy import deepcopy
+from math import exp
 
 def sa_algorithm(instance, temp_start = 100, update_temp = lambda t : 0.999 * t, stop_criterion = lambda t : t <= 1e-4):
     curr_solution = incumb_solution = deepcopy(instance)

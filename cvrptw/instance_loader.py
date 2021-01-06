@@ -23,7 +23,7 @@ class Customer:
         self.vehicle_num = vehicle_num
 
     def __str__(self):
-        return f'Customer NO. : {self.cust_no}; X : {self.x}; Y : {self.y}; Demand : {self.demand}; Ready Time : {self.ready_time}; Due Date : {self.due_date}; Service Time : {self.service_time}'
+        return f'Customer NO. : {self.cust_no}; X : {self.x}; Y : {self.y}; Demand : {self.demand}; Ready Time : {self.ready_time}; Due Date : {self.due_date}; Service Time : {self.service_time}; Vehichle num: {self.vehicle_num}'
 
     def __eq__(self, other):
         return self.cust_no == other.cust_no
@@ -77,21 +77,24 @@ class Vehicle:
             self.y = self.depo.y
 
     def remove_customer(self, customer):
-        customer_idx = [route_node[0] for route_node in self.service_route].index(customer)
-        del self.service_route[customer_idx]
+        try:
+            customer_idx = [route_node[0] for route_node in self.service_route].index(customer)
+            del self.service_route[customer_idx]
 
-        for i, (curr_customer, curr_time) in enumerate(self.service_route[customer_idx :]):
-            prev_customer, prev_time = self.service_route[customer_idx + i - 1]
-            new_time = prev_time + prev_customer.service_time + ceil(distance(prev_customer, curr_customer))
-            new_time = max(new_time, curr_customer.ready_time)
-            self.service_route[customer_idx + i] = (curr_customer, new_time)
-        
-        next_customer = self.service_route[customer_idx][0]
-        prev_customer = self.service_route[customer_idx - 1][0]
-        self.total_distance -= (distance(customer, next_customer) + distance(customer, prev_customer))
-        self.total_distance += distance(prev_customer, next_customer)
+            for i, (curr_customer, curr_time) in enumerate(self.service_route[customer_idx :]):
+                prev_customer, prev_time = self.service_route[customer_idx + i - 1]
+                new_time = prev_time + prev_customer.service_time + ceil(distance(prev_customer, curr_customer))
+                new_time = max(new_time, curr_customer.ready_time)
+                self.service_route[customer_idx + i] = (curr_customer, new_time)
+            
+            next_customer = self.service_route[customer_idx][0]
+            prev_customer = self.service_route[customer_idx - 1][0]
+            self.total_distance -= (distance(customer, next_customer) + distance(customer, prev_customer))
+            self.total_distance += distance(prev_customer, next_customer)
 
-        self.reset_vehicle_used()
+            self.reset_vehicle_used()
+        except Exception as e:
+            return
 
     def try_to_serve_customer(self, new_customer, vehicle_num):
         for i in range(len(self.service_route)):
@@ -142,13 +145,13 @@ class Instance:
         self.num_vehicles = num_vehicles
         self.capacity = capacity
 
-        customer_list.sort(key=lambda c: c.cust_no)
+        
         depo = customer_list[0]
         self.vehicles = [Vehicle(depo, capacity) for _ in range(num_vehicles)]
         assert (
             customer_list[0].cust_no == 0 and customer_list[0].ready_time == 0 and customer_list[0].demand == 0
         ), f'Customer list must contain depot with customer number 0!'
-        self.customer_list = customer_list
+        self.customer_list = [customer_list[0]] + sorted(customer_list[1:], key=lambda c: c.ready_time)
 
     def __getitem__(self, key):
         return self.customer_list[key]
@@ -163,7 +166,7 @@ class Instance:
         self.customer_list.sort(key=lambda c: c.ready_time)
 
     def find_initial_solution(self):
-        for customer in self.customer_list[1:]:
+        for customer in self.customer_list[:]:
             for i, vehicle in enumerate(self.vehicles):
                 if vehicle.serve_customer(customer, i):
                     break
@@ -177,7 +180,7 @@ class Instance:
             vehicle.return_home()
 
     def generate_random_neighbour(self):
-        rand_cust = self.customer_list[random.randint(0, len(self.customer_list))]
+        rand_cust = self.customer_list[random.randint(0, len(self.customer_list) - 1)]
         current_serving_vehicle = self.vehicles[rand_cust.vehicle_num]
         current_serving_vehicle.remove_customer(rand_cust)
 
