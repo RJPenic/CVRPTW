@@ -1,14 +1,16 @@
 import instance_loader
 import random
+from copy import deepcopy
 
-def sa_algorithm(instance, temp_start = 100, update_temp = lambda t, i : 0.999 * t, stop_criterion = lambda t : t <= 1e-4):
-    curr_solution = incumb_solution = instance.copy().find_initial_solution()
+def sa_algorithm(instance, temp_start = 100, update_temp = lambda t : 0.999 * t, stop_criterion = lambda t : t <= 1e-4):
+    curr_solution = incumb_solution = deepcopy(instance)
+    curr_solution.find_initial_solution()
     curr_dist, curr_vhcls = incumb_dist, incumb_vhcls = curr_solution.get_total_distance_and_vehicles()
 
     temp = temp_start
 
     while not stop_criterion(temp):
-        neighbour = curr_solution.copy()
+        neighbour = deepcopy(curr_solution)
         neighbour.generate_random_neighbour()
 
         neighbour_dist, neighbour_vhcls = neighbour.get_total_distance_and_vehicles()

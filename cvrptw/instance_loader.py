@@ -13,6 +13,7 @@ class Customer:
         self.due_date = due_date
         self.service_time = service_time
         self.is_served = False
+        self.vehicle_num = -1
 
     def copy(self):
         return Customer(self.cust_no, self.x, self.y, self.demand, self.ready_time, self.due_date, self.service_time)
@@ -176,7 +177,7 @@ class Instance:
             vehicle.return_home()
 
     def generate_random_neighbour(self):
-        rand_cust = self.customer_list[random.random(0, len(self.customer_list))]
+        rand_cust = self.customer_list[random.randint(0, len(self.customer_list))]
         current_serving_vehicle = self.vehicles[rand_cust.vehicle_num]
         current_serving_vehicle.remove_customer(rand_cust)
 
@@ -211,7 +212,7 @@ class Instance:
             vehicle.return_home()
             vehicles_used += 1
             dist += vehicle.total_distance
-        return dist, vehicles
+        return dist, vehicles_used
 
 def load_from_file(filepath):
     i = 0
