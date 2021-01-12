@@ -145,6 +145,13 @@ class Vehicle:
         return f'self.id = {self.id}; x={self.x}; y={self.y}; capacity={self.capacity}; last_service_time={self.last_service_time}; {self.service_route}'
 
 
+def all_served(customers):
+    for c in customers:
+        if not c.is_served:
+            return False
+
+    return True
+
 class Instance:
     def __init__(self, num_vehicles, capacity, customer_list):
         assert (
@@ -174,18 +181,39 @@ class Instance:
         self.customer_list.sort(key=lambda c: c.ready_time)
 
     def find_initial_solution(self):
-        for customer in self.customer_list[1:]:
-            for i, vehicle in enumerate(self.vehicles):
-                if vehicle.serve_customer(customer):
-                    break
-            if not customer.is_served:
-                for i, vehicle in enumerate(self.vehicles):
-                    if vehicle.serve_customer_force(customer):
+        for i, v in enumerate(self.vehicles):
+            while True:
+                self.customer_list.sort(key = lambda c: distance(c, v))
+                found = False
+                for customer in self.customer_list:
+                    if customer.is_served or customer.cust_no == 0:
+                        continue
+
+                    if v.serve_customer(customer):
+                        found = True
                         break
+
+                if not found:
+                    for customer in self.customer_list:
+                        if customer.is_served or customer.cust_no == 0:
+                            continue
+
+                        if v.serve_customer_force(customer):
+                            found = True
+                            break
+
+                if not found:
+                    break
+
+            self.customer_list.sort(key = lambda c: c.cust_no)
+            if all_served(self.customer_list[1:]):
+                break
+
         for vehicle in self.vehicles:
             if vehicle.last_service_time == 0:
                 continue
             vehicle.return_home()
+
 
     def generate_random_neighbour(self):
         rand_cust = self.customer_list[random.randint(1, len(self.customer_list) - 1)]
