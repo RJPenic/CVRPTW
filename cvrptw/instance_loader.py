@@ -66,7 +66,7 @@ class Vehicle:
     def serve_customer_force(self, customer):
         if customer.ready_time > ceil(distance(customer, self)) + self.last_service_time:
             last_service_time = self.last_service_time
-            self.last_service_time += customer.ready_time - ceil(distance(customer, self)) + self.last_service_time
+            self.last_service_time = customer.ready_time - ceil(distance(customer, self))
             if self.serve_customer(customer):
                 return True
             else:
@@ -105,7 +105,9 @@ class Vehicle:
     def try_to_serve_customer(self, new_customer):
         if len(self.service_route) == 1:
             return self.serve_customer(new_customer) or self.serve_customer_force(new_customer)
-        for i in range(1, len(self.service_route)):
+        shuffled = list(range(1, len(self.service_route)))
+        random.shuffle(shuffled)
+        for i in shuffled:
             vehicle = Vehicle(self.id, self.depo, self.max_capacity, self.min_capacity)
             vehicle.hard_reset_vehicle()
             index = i
@@ -145,12 +147,15 @@ class Vehicle:
         return f'self.id = {self.id}; x={self.x}; y={self.y}; capacity={self.capacity}; last_service_time={self.last_service_time}; {self.service_route}'
 
 
-def all_served(customers):
+def all_served(customers, b=False):
+    result = True
     for c in customers:
         if not c.is_served:
-            return False
+            if b:
+                print(c)
+            result = False
 
-    return True
+    return result
 
 class Instance:
     def __init__(self, num_vehicles, capacity, customer_list):
@@ -183,7 +188,7 @@ class Instance:
     def find_initial_solution(self):
         for i, v in enumerate(self.vehicles):
             while True:
-                self.customer_list.sort(key = lambda c: distance(c, v))
+                self.customer_list.sort(key = lambda c: distance(c, v) + c.ready_time)
                 found = False
                 for customer in self.customer_list:
                     if customer.is_served or customer.cust_no == 0:
@@ -208,11 +213,14 @@ class Instance:
             self.customer_list.sort(key = lambda c: c.cust_no)
             if all_served(self.customer_list[1:]):
                 break
+        self.customer_list.sort(key = lambda c: c.cust_no)
 
         for vehicle in self.vehicles:
             if vehicle.last_service_time == 0:
                 continue
             vehicle.return_home()
+        if not all_served(self.customer_list[1:], True):
+            print("Not all vehicles has been served!\n")
 
 
     def generate_random_neighbour(self):
@@ -228,7 +236,7 @@ class Instance:
     def get_neighbour(self, customer, force=False):
         shuffled = [i for i in range(0, len(self.vehicles) - 1)]
         random.shuffle(shuffled)
-        for vehicle_num in [i for i in range(0, len(self.vehicles) - 1)]:
+        for vehicle_num in shuffled:
             vehicle = self.vehicles[vehicle_num]
             if force or vehicle.last_service_time != 0:
                 if vehicle.try_to_serve_customer(customer):
