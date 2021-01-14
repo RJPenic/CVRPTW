@@ -224,7 +224,8 @@ class Instance:
 
 
     def generate_random_neighbour(self):
-        rand_cust = self.customer_list[random.randint(1, len(self.customer_list) - 1)]
+        #rand_cust = self.customer_list[random.randint(1, len(self.customer_list) - 1)]
+        rand_cust = random.choices(self.customer_list[1:], [1./len(self.vehicles[c.vehicle_num].service_route) for c in self.customer_list[1:]], k = 1)[0]
         current_serving_vehicle = self.vehicles[rand_cust.vehicle_num]
         current_serving_vehicle.remove_customer(rand_cust)
         v = None
