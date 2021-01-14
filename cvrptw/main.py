@@ -11,15 +11,26 @@ if __name__ == '__main__':
 
     instance = load_from_file(filepath)
     instance.find_initial_solution()
+    print()
+    print(f'Instance initial solution: {instanceName}')
     instance.get_output()
 
     results = sa_algorithm(instance)
 
+    print()
+    print(f'Instance {instanceName} after 1 min')
     with open("1min_" + instanceName, "w") as f:
-    	f.write(results[0].get_output())
+    	f.write(results[0][0].get_output())
+    print("Objective function count: ", results[0][1])
 
+    print()
+    print(f'Instance {instanceName} after 5 min')
     with open("5min_" + instanceName, "w") as f:
     	f.write(results[1].get_output())
+    print("Objective function count: ", results[1][1])
 
+    print()
+    print(f'Instance {instanceName} in the end')
     with open("infinite_" + instanceName, "w") as f:
     	f.write(results[2].get_output())
+    print("Objective function count: ", results[2][1])

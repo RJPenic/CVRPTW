@@ -257,7 +257,10 @@ class Instance:
                 result += f'{node[0].cust_no}({node[1]})->'
             result = result[:-2] + '\n'
             i += 1
-        return f'{i-1}\n{result}{dist}'
+
+        print("vehicle count: ", i-1)
+        print("distance: ", dist)
+        return f'{i-1}\n{result}{dist}\n'
 
     def get_total_distance_and_vehicles(self):
         dist = 0
