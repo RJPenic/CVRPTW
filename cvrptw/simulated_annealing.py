@@ -4,7 +4,10 @@ from copy import deepcopy
 from math import exp
 import time
 
-def sa_algorithm(instance, temp_start = 100, update_temp = lambda t : 0.999 * t, stop_criterion = lambda t : t <= 0.01):
+def objective_function(num_vhcls, total_distance):
+    return num_vhcls * total_distance
+
+def sa_algorithm(instance, temp_start = 550, update_temp = lambda t : 0.9999 * t, stop_criterion = lambda t : t <= 0.01):
     curr_solution = incumb_solution = deepcopy(instance)
     # print("Inside sa: ", instance.get_total_distance_and_vehicles())
     curr_dist, curr_vhcls = incumb_dist, incumb_vhcls = curr_solution.get_total_distance_and_vehicles()
@@ -23,12 +26,12 @@ def sa_algorithm(instance, temp_start = 100, update_temp = lambda t : 0.999 * t,
 
         neighbour_dist, neighbour_vhcls = neighbour.get_total_distance_and_vehicles()
 
-        if (neighbour_vhcls < curr_vhcls or neighbour_dist < curr_dist) \
-            or random.random() < exp(- (abs(curr_dist - neighbour_dist)) / temp):
+        if objective_function(neighbour_vhcls, neighbour_dist) < objective_function(curr_vhcls,  curr_dist) \
+            or random.random() < exp(- (abs(objective_function(curr_vhcls,  curr_dist) - objective_function(neighbour_vhcls, neighbour_dist))) / temp):
         	curr_solution = neighbour
         	curr_dist, curr_vhcls = neighbour_dist, neighbour_vhcls
 
-        	if (curr_vhcls < incumb_vhcls or curr_dist < incumb_dist):
+        	if (objective_function(curr_vhcls, curr_dist) < objective_function(incumb_vhcls, incumb_dist)):
         		incumb_solution = curr_solution
         		incumb_dist, incumb_vhcls = curr_dist, curr_vhcls
 
