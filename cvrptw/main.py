@@ -19,18 +19,18 @@ if __name__ == '__main__':
 
     print()
     print(f'Instance {instanceName} after 1 min')
-    with open("1min_" + instanceName, "w") as f:
+    with open("res-1m-" + instanceName, "w") as f:
     	f.write(results[0][0].get_output())
     print("Objective function count: ", results[0][1])
 
     print()
     print(f'Instance {instanceName} after 5 min')
-    with open("5min_" + instanceName, "w") as f:
+    with open("res-5m-" + instanceName, "w") as f:
     	f.write(results[1].get_output())
     print("Objective function count: ", results[1][1])
 
     print()
     print(f'Instance {instanceName} in the end')
-    with open("infinite_" + instanceName, "w") as f:
+    with open("res-un-" + instanceName, "w") as f:
     	f.write(results[2].get_output())
     print("Objective function count: ", results[2][1])
